@@ -492,12 +492,16 @@ class _DraggableState<T extends Object> extends State<Draggable<T>> {
     setState(() {
       _activeCount += 1;
     });
+    final overlayState = Overlay.of(context,
+        debugRequiredFor: widget, rootOverlay: widget.rootOverlay);
+    final RenderBox box = overlayState.context.findRenderObject()! as RenderBox;
+    final localizedStartPoint = box.localToGlobal(dragStartPoint);
     final _DragAvatar<T> avatar = _DragAvatar<T>(
-      overlayState: Overlay.of(context, debugRequiredFor: widget, rootOverlay: widget.rootOverlay),
+      overlayState: overlayState,
       data: widget.data,
       axis: widget.axis,
       initialPosition: position,
-      dragStartPoint: dragStartPoint,
+      dragStartPoint: localizedStartPoint,
       feedback: widget.feedback,
       feedbackOffset: widget.feedbackOffset,
       ignoringFeedbackSemantics: widget.ignoringFeedbackSemantics,
@@ -947,10 +951,10 @@ class _DragAvatar<T extends Object> extends Drag {
 
   Widget _build(BuildContext context) {
     final RenderBox box = overlayState.context.findRenderObject()! as RenderBox;
-    final Offset overlayTopLeft = box.localToGlobal(Offset.zero);
+    final localizedOffset = box.globalToLocal(_lastOffset!);
     return Positioned(
-      left: _lastOffset!.dx - overlayTopLeft.dx,
-      top: _lastOffset!.dy - overlayTopLeft.dy,
+      left: localizedOffset.dx,
+      top: localizedOffset.dy,
       child: ExcludeSemantics(
         excluding: ignoringFeedbackSemantics,
         child: IgnorePointer(
